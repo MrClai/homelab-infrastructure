@@ -37,9 +37,9 @@ Git хранит желаемое состояние, CI собирает кон
 
 | Файл | Что внутри |
 |---|---|
-| [docs/architecture.md](docs/architecture.md) | Как связаны основные компоненты |
-| [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
-| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения |
+| [architecture.md](architecture.md) | Как связаны основные компоненты |
+| [operations.md](operations.md) | Что проверять при эксплуатации |
+| [decisions.md](decisions.md) | Почему выбраны эти решения |
 
 ## Текущее состояние
 
