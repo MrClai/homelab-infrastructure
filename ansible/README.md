@@ -14,13 +14,34 @@ Ansible запускается с отдельной control node внутри h
 
 Ноутбук не является частью homelab automation. Он используется только как рабочий терминал/редактор.
 
+## Структура проекта
+
+```
+homelab-ansible/
+├── ansible.cfg
+└── inventories/
+    └── homelab/
+        └── hosts.ini
+```
+
+## Конфигурация
+
+`ansible.cfg` задаёт дефолты — inventory, пользователь подключения, параметры SSH:
+
+```ini
+[defaults]
+inventory = inventories/homelab/hosts.ini
+remote_user = clai
+host_key_checking = False
+retry_files_enabled = False
+
+[ssh_connection]
+pipelining = True
+```
+
 ## Inventory
 
-Основной inventory:
-
-```bash
-inventories/homelab/hosts.ini
-```
+Основной inventory: `inventories/homelab/hosts.ini`
 
 Группы:
 
@@ -41,24 +62,18 @@ clai    = ручная админка
 ansible = automation/service account
 ```
 
-После этого inventory можно будет перевести на:
-
-```ini
-ansible_user=ansible
-```
-
 ## Проверка inventory
 
 Проверить синтаксис inventory:
 
 ```bash
-ansible-inventory -i inventories/homelab/hosts.ini --list
+ansible-inventory --list
 ```
 
 Проверить SSH + Python + выполнение Ansible-модуля:
 
 ```bash
-ansible all -i inventories/homelab/hosts.ini -m ping
+ansible all -m ping
 ```
 
 Ожидаемый результат:
@@ -67,22 +82,21 @@ ansible all -i inventories/homelab/hosts.ini -m ping
 ping: pong
 ```
 
-Важно: `ansible -m ping` — это не ICMP ping. Он проверяет, что Ansible может подключиться по SSH и выполнить модуль на удаленной машине.
+Важно: `ansible -m ping` — это не ICMP ping. Он проверяет, что Ansible может подключиться по SSH и выполнить модуль на удалённой машине.
 
 ## Текущее состояние
 
-На 2026-06-01 Ansible `ping` успешно проверен для:
+На 2026-06-14 `ansible.cfg` настроен, `ansible all -m ping` успешно проверен для всех хостов:
 
-- `homelab`
-- `k3s-worker-01`
-- `k3-worker-2`
-- `gitea`
-- `woodpecker`
-- `openbao`
+- `homelab` — k3s master (Pi5)
+- `k3s-worker-01` — k3s worker VM101
+- `k3-worker-2` — k3s worker Digma PRO
+- `gitea` — Gitea VM102
+- `woodpecker` — Woodpecker CI VM103
+- `openbao` — OpenBao VM104
 
 ## Следующие шаги
 
-- добавить `ansible.cfg`;
-- сделать первый read-only healthcheck playbook;
-- создать отдельного пользователя `ansible` на managed nodes;
-- позже перенести проект в Git/Gitea и запускать с `ansible-control`.
+- [ ] сделать первый read-only healthcheck playbook;
+- [ ] создать отдельного пользователя `ansible` на managed nodes;
+- [ ] перенести проект в Gitea и запускать с `ansible-control`.
