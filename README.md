@@ -8,6 +8,8 @@
 
 - k3s-кластер из control-plane-ноды и двух worker-нод;
 - Proxmox VE host для виртуальных машин;
+- Terraform для управления VM в Proxmox (IaC);
+- Ansible для проверки состояния нод (control node + inventory);
 - Gitea как self-hosted Git;
 - Woodpecker CI для pipeline;
 - локальный Docker Registry;
@@ -25,13 +27,15 @@
 
 Инфраструктура собирается вокруг простого flow:
 
-```text
+```
 Git -> CI -> Registry -> ArgoCD -> Kubernetes
                          |
                          +-> OpenBao / secrets
 ```
 
 Git хранит желаемое состояние, CI собирает контейнерные образы, Registry хранит образы, ArgoCD синхронизирует Kubernetes, а OpenBao используется для работы с секретами.
+
+VM в Proxmox описаны через Terraform, базовая проверка состояния нод — через Ansible.
 
 ## Документы
 
@@ -41,16 +45,18 @@ Git хранит желаемое состояние, CI собирает кон
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения |
 | [docs/roadmap.md](docs/roadmap.md) | Что уже сделано и что планируется дальше |
+| [terraform/](terraform/) | Terraform-код для VM в Proxmox |
+| [ansible/README.md](ansible/README.md) | Ansible control node, inventory, текущее состояние |
 
 ## Текущее состояние
 
-Рабочая часть инфраструктуры уже собрана: Kubernetes, GitOps, мониторинг, локальный DNS, NFS storage, MinIO, OpenBao и удаленный доступ через FRP.
+Рабочая часть инфраструктуры уже собрана: Kubernetes, GitOps, мониторинг, локальный DNS, NFS storage, MinIO, OpenBao и удаленный доступ через FRP. VM в Proxmox описаны через Terraform.
 
 При этом проект еще требует уборки и доработки:
 
 - перенести DNS/DHCP/Firewall на OpenWRT;
 - описать и проверить backup/restore;
-- автоматизировать базовую настройку Linux-нод через Ansible;
+- написать первый Ansible playbook (сейчас готовы control node и inventory);
 - привести GitOps к более полному состоянию.
 
 ## Ограничения
