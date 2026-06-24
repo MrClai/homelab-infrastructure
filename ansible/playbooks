@@ -1,0 +1,36 @@
+---
+- name: Healthcheck all nodes
+  hosts: all
+  gather_facts: true
+  become: false
+
+  tasks:
+    - name: Ping check
+      ansible.builtin.ping:
+
+    - name: Show uptime
+      ansible.builtin.command: uptime
+      changed_when: false
+      register: uptime_result
+
+    - name: Print uptime
+      ansible.builtin.debug:
+        msg: "{{ uptime_result.stdout_lines }}"
+
+    - name: Show disk usage on root
+      ansible.builtin.command: df -h /
+      changed_when: false
+      register: disk_result
+
+    - name: Print disk usage
+      ansible.builtin.debug:
+        msg: "{{ disk_result.stdout_lines }}"
+
+    - name: Show memory usage
+      ansible.builtin.command: free -h
+      changed_when: false
+      register: memory_result
+
+    - name: Print memory usage
+      ansible.builtin.debug:
+        msg: "{{ memory_result.stdout_lines }}"
