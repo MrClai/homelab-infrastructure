@@ -97,6 +97,6 @@ ping: pong
 
 ## Следующие шаги
 
-- [ ] сделать первый read-only healthcheck playbook;
+- [X] сделать первый read-only healthcheck playbook;
 - [ ] создать отдельного пользователя `ansible` на managed nodes;
 - [ ] перенести проект в Gitea и запускать с `ansible-control`.
