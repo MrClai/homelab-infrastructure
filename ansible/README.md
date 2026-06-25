@@ -95,8 +95,15 @@ ping: pong
 - `woodpecker` — Woodpecker CI VM103
 - `openbao` — OpenBao VM104
 
+На 2026-06-25 выполнено:
+
+- `ansible.cfg` настроен, `ansible all -m ping` работает без флагов
+- Все 6 хостов отвечают pong: homelab, k3s-worker-01, k3-worker-2, gitea, woodpecker, openbao
+- `playbooks/healthcheck.yml` — read-only проверка uptime, disk, memory на всех нодах
+- `playbooks/create-ansible-user.yml` — создан service account `ansible` на всех нодах, SSH-ключ прокинут
+- `ansible.cfg` переключён на пользователя `ansible` с отдельным SSH-ключом `~/.ssh/ansible_id`
+
 ## Следующие шаги
 
 - [X] сделать первый read-only healthcheck playbook;
-- [ ] создать отдельного пользователя `ansible` на managed nodes;
-- [ ] перенести проект в Gitea и запускать с `ansible-control`.
+- [X] создать отдельного пользователя `ansible` на managed nodes;
