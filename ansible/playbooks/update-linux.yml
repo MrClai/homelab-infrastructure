@@ -12,3 +12,8 @@
     - name: Upgrade all packages
       ansible.builtin.apt:
         upgrade: dist
+
+    - name: Install tmux
+      ansible.builtin.apt:
+        name: tmux
+        state: present
