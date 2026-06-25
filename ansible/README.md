@@ -24,7 +24,8 @@ homelab-ansible/
 │       └── hosts.ini
 └── playbooks
     ├── create-ansible-user.yml
-    └── healtcheck.yml
+    ├── healtcheck.yml
+    └── update-linux.yml
 ```
 
 ## Конфигурация
@@ -106,8 +107,10 @@ ping: pong
 - `playbooks/healthcheck.yml` — read-only проверка uptime, disk, memory на всех нодах
 - `playbooks/create-ansible-user.yml` — создан service account `ansible` на всех нодах, SSH-ключ прокинут
 - `ansible.cfg` переключён на пользователя `ansible` с отдельным SSH-ключом `~/.ssh/ansible_id`
+- `playbooks/update-linux.yml` — обновление apt кэша и пакетов на всех нодах
 
 ## Следующие шаги
 
 - [X] сделать первый read-only healthcheck playbook;
 - [X] создать отдельного пользователя `ansible` на managed nodes;
+- [ ] Расширить base Linux playbook — SSH hardening, firewall, nfs-common
