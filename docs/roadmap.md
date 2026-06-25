@@ -14,18 +14,16 @@
 - Storage — используются NFS persistent volumes и MinIO.
 - LAN DNS — настроен локальный DNS через AdGuard Home.
 - Remote access — настроен доступ через VPS и FRP.
+- Ansible automation — healthcheck playbook на всех нодах, service account ansible с отдельным SSH-ключом, ansible.cfg настроен.
 
 ## Next
 
 - OpenWRT DNS/DHCP/Firewall — перенести сетевую логику в одну точку управления и описать зоны доступа.
 - Network documentation — зафиксировать целевую схему сети, роли устройств и правила доступа.
-- Kubernetes cleanup — удалить тестовые workloads, namespace и старые Ingress.
 - Backup/restore — проверить восстановление хотя бы одного сервиса, а не только наличие backup.
-- Ansible automation — автоматизировать базовую настройку Linux-нод и healthcheck.
 - GitOps expansion — перенести больше Kubernetes-конфигураций в ArgoCD.
 
 ## Later
 
 - Добавить отдельный документ по сети после настройки OpenWRT.
 - Добавить restore runbook после первой успешной проверки восстановления.
-- Добавить описание Ansible inventory и healthcheck playbook.
