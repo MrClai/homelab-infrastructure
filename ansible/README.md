@@ -19,9 +19,12 @@ Ansible запускается с отдельной control node внутри h
 ```
 homelab-ansible/
 ├── ansible.cfg
-└── inventories/
-    └── homelab/
-        └── hosts.ini
+├── inventories
+│   └── homelab
+│       └── hosts.ini
+└── playbooks
+    ├── create-ansible-user.yml
+    └── healtcheck.yml
 ```
 
 ## Конфигурация
@@ -31,12 +34,13 @@ homelab-ansible/
 ```ini
 [defaults]
 inventory = inventories/homelab/hosts.ini
-remote_user = clai
+remote_user = ansible
 host_key_checking = False
 retry_files_enabled = False
 
 [ssh_connection]
 pipelining = True
+private_key_file = ~/.ssh/ansible_id
 ```
 
 ## Inventory
@@ -52,10 +56,10 @@ pipelining = True
 Текущий пользователь подключения:
 
 ```ini
-ansible_user=clai
+ansible_user=ansible
 ```
 
-Позже нужно создать отдельного service account:
+Service account:
 
 ```text
 clai    = ручная админка
@@ -82,7 +86,7 @@ ansible all -m ping
 ping: pong
 ```
 
-Важно: `ansible -m ping` — это не ICMP ping. Он проверяет, что Ansible может подключиться по SSH и выполнить модуль на удалённой машине.
+Пометка: `ansible -m ping` — это не ICMP ping. Он проверяет, что Ansible может подключиться по SSH и выполнить модуль на удалённой машине.
 
 ## Текущее состояние
 
