@@ -7,7 +7,7 @@
 Что проверять:
 
 - состояние нод;
-- namespace и лишние тестовые workload;
+- namespace и лишние тестовые workloads;
 - Service и Ingress;
 - CoreDNS и разрешение Service DNS;
 - Helm releases;
@@ -73,15 +73,24 @@ kubectl get pv
 df -h
 ```
 
+## Ansible
+
+Healthcheck playbook запускается с VM105 (ansible-control) и проверяет все ноды.
+
+```bash
+ansible all -m ping
+ansible-playbook playbooks/healthcheck.yml
+```
+
+Ожидаемый результат: все 6 хостов отвечают, uptime / disk / memory в норме.
+
 ## Backup / Restore
 
 Backup считается полезным только после проверки restore.
 
 Минимальный план:
 
-- определить критичные данные;
-- сделать backup;
-- восстановить один сервис в тестовом сценарии;
+- определить критичные данные по каждому сервису;
+- сделать backup в MinIO или на внешнее хранилище;
+- восстановить один сервис в тестовом сценарии (кандидат — Gitea);
 - описать restore runbook.
-
-Пока этот блок находится в работе.
