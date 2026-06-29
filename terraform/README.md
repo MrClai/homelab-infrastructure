@@ -12,7 +12,7 @@ Terraform запускается с control node внутри homelab:
 - Terraform: `>= 1.14.0`
 - State: MinIO S3 backend — `terraform-state/homelab/terraform.tfstate`
 
-State хранится локально в MinIO на Pi5 (`192.168.1.10:9002`). Внешние сервисы не используются.
+State хранится локально в MinIO на Pi5 (`pi5.homelab.local:9002`). Внешние сервисы не используются.
 
 ## Структура проекта
 
@@ -120,4 +120,4 @@ terraform apply
 - `terraform plan` = No changes для всех трёх VM
 - VM104 (openbao) и VM105 (ansible-control) созданы через Terraform с cloud-init
 - SSH-ключи прокинуты через cloud-init, не через `ssh-copy-id`
-- Код в Gitea: `http://192.168.1.40:3000/igor/homelab-terraform`
+- Код в Gitea: `http://gitea.homelab.local:3000/igor/homelab-terraform`
