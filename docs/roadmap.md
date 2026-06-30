@@ -11,25 +11,20 @@
 - GitOps — подключен ArgoCD для доставки Kubernetes workload.
 - Ingress and DNS — настроены Traefik Ingress, CoreDNS и Kubernetes Service DNS.
 - Monitoring — подняты Prometheus, Grafana, Loki и Alertmanager.
-- Secrets — подключены OpenBao и Vault Agent Injector; Grafana получает пароль через Injector.
+- Secrets — подключены OpenBao и Vault Agent Injector; Grafana получает пароль через Injector. Все пароли вынесены из values.yaml и Git.
 - Storage — используются NFS persistent volumes и MinIO.
 - Network — GL-MT6000 настроен как основной роутер, DHCP, DNS и firewall.
 - Remote access — настроен доступ через VPS и FRP.
 - Ansible — control node на VM105, healthcheck playbook, create-ansible-user, update-linux.
 - Kubernetes cleanup — тестовые workloads и namespace удалены.
-- Portfolio — репо homelab-infrastructure опубликовано на GitHub с docs/, terraform/, ansible/.
+- Monitoring fix — Loki isDefault зафиксирован постоянно в values.yaml, подтверждён в Helm-управляемом ConfigMap.
+- Architecture decisions — 7 ADR опубликованы в docs/decisions.md (k3s, Proxmox, OpenBao, ArgoCD, Terraform, MinIO, GL-MT6000).
+- Backup — реализован backup для OpenBao (Raft snapshot) и MinIO (self-archive), оба загружаются в MinIO bucket с offsite-копией на отдельной машине. Restore проверен в изолированном окружении: snapshot успешно восстанавливается, init и unseal проходят корректно.
 
 ## Next
 
-- Backup/restore — проверить восстановление хотя бы одного сервиса (кандидат — Gitea), написать restore runbook.
-- Monitoring debt — Loki isDefault постоянный фикс через values.yaml в Git; сейчас только kubectl patch.
-- Secrets end-to-end — Alertmanager SMTP через OpenBao Injector.
 - Security — firewall rules, Registry auth/TLS, Portainer docker.sock risk.
 
 ## Later
 
-- Добавить restore runbook после первой успешной проверки восстановления.
-- GitOps expansion — перенести monitoring stack под управление ArgoCD.
-- HA k3s — три server nodes с embedded etcd.
-- Longhorn — distributed storage вместо NFS SPOF.
-- SSO — Authentik или Keycloak.
+- Restore runbook — оформить пошаговую инструкцию на основе уже проверенного restore-сценария.
