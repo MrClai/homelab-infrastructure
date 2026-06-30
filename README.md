@@ -1,34 +1,70 @@
-# Backup Scripts
+# Homelab Infrastructure
 
-Скрипты для backup критичных данных homelab — OpenBao (секреты) и MinIO (object storage, включая Terraform state).
+Домашняя инфраструктура для практики Linux, Kubernetes, сетей, GitOps, мониторинга и self-hosted сервисов.
 
-## Почему именно эти два сервиса
+Это не production-кластер и не попытка изобразить enterprise на коленке. Это живой homelab на реальном железе, где я разбираю, как связаны сервисы, как идёт трафик, как работает DNS, где появляются точки отказа и что нужно улучшать.
 
-Gitea, Prometheus и большинство остальных сервисов либо легко пересоздаются из кода (GitOps, IaC), либо данные дублируются в нескольких местах (например, репозитории Gitea зеркалятся на GitHub). OpenBao и MinIO — единственные сервисы, где данные существуют в одном экземпляре без дублирования, поэтому именно они в фокусе backup-стратегии.
+## Что внутри
 
-## Архитектура
+- k3s-кластер из control-plane-ноды и двух worker-нод;
+- Proxmox VE host для виртуальных машин;
+- Terraform для управления VM в Proxmox (IaC);
+- Ansible для автоматизации Linux-нод (control node, inventory, playbooks);
+- Gitea как self-hosted Git;
+- Woodpecker CI для pipeline;
+- локальный Docker Registry;
+- ArgoCD для GitOps-доставки в Kubernetes;
+- Traefik Ingress;
+- CoreDNS и Kubernetes Service DNS;
+- Prometheus, Grafana, Loki и Alertmanager;
+- OpenBao и Vault Agent Injector;
+- NFS persistent volumes;
+- MinIO как S3-compatible storage;
+- GL-MT6000 как основной роутер — DHCP, DNS, Firewall;
+- FRP через VPS для удалённого доступа.
+
+## Основная идея
+
+Инфраструктура собирается вокруг простого flow:
 
 ```
-OpenBao ──┐
-          ├──► MinIO bucket backups/ (промежуточное хранилище, можно по cron)
-MinIO ────┘
-                 │
-                 ▼
-    offsite-копия на ноутбуке (вручную, при подключении к домашней сети)
+Gitea -> Woodpecker CI -> Registry -> ArgoCD -> Kubernetes
+                                        |
+                                        +-> OpenBao / secrets
 ```
 
-## Скрипты
+Git хранит желаемое состояние, CI собирает контейнерные образы, Registry хранит образы, ArgoCD синхронизирует Kubernetes, а OpenBao используется для работы с секретами.
 
-- **`backup-openbao.sh`** — снимает Raft snapshot OpenBao (`bao operator raft snapshot save`) и загружает в MinIO. Использует встроенный snapshot-механизм, а не сырое копирование файлов — это важно для consistency, так как Raft использует журнал транзакций.
-- **`backup-minio.sh`** — архивирует данные самого MinIO (`tar`) и загружает в отдельный backup-bucket.
-- **`fetch-backups-to-laptop.sh`** — забирает оба бэкапа с домашней инфраструктуры на локальную машину как offsite-копию. Запускается вручную, при физическом подключении к домашней сети.
+VM в Proxmox описаны через Terraform, базовая автоматизация Linux-нод — через Ansible.
 
-## Перед использованием
+## Документы
 
-1. Установи MinIO client (`mc`) на машине, откуда запускаешь backup-скрипты.
-2. Настрой alias: `mc alias set homelab http://<MINIO_HOST>:<API_PORT> <ACCESS_KEY> <SECRET_KEY>`. Уточни реальный API-порт через `docker ps` — он может отличаться от дефолтного 9000 в зависимости от маппинга портов.
-3. В `fetch-backups-to-laptop.sh` укажи свой хост через переменную `PI5_HOST`, либо пропиши его прямо в скрипте.
+| Файл | Что внутри |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Как связаны основные компоненты |
+| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (7 ADR) |
+| [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
+| [docs/roadmap.md](docs/roadmap.md) | Что уже сделано и что планируется дальше |
+| [terraform/](terraform/) | Terraform-код для VM в Proxmox |
+| [ansible/README.md](ansible/README.md) | Ansible control node, inventory, playbooks |
+| [scripts/README.md](scripts/README.md) | Backup-скрипты для OpenBao и MinIO |
 
-## Restore
+## Текущее состояние
 
-Restore для OpenBao тестировался в изолированном Docker-контейнере на отдельной машине — snapshot подтверждён как валидный и восстанавливаемый (init/unseal проходят успешно после restore). Полный restore-runbook с пошаговой инструкцией — в разработке.
+Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR.
+
+Открытые задачи:
+
+- Backup для OpenBao и MinIO реализован; snapshot OpenBao проверен restore-тестом в изолированном окружении — успешный init, unseal и подтверждение целостности данных.
+- secrets — Alertmanager SMTP через OpenBao Injector (низкий приоритет: пароль уже вне Git, через K8s Secret + file mount);
+- security — firewall rules, Registry auth/TLS.
+
+## Ограничения
+
+- Один control-plane в k3s не даёт отказоустойчивости control-plane.
+- NFS является точкой отказа для stateful workload.
+- Backup реализован для OpenBao и MinIO, restore проверен в изолированном тестовом окружении.
+
+## Зачем этот репозиторий
+
+Репозиторий нужен не для хранения секретов или полной приватной конфигурации. Его задача — показать архитектуру, принятые решения, текущие ограничения и план улучшений homelab-инфраструктуры.
