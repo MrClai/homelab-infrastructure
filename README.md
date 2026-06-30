@@ -42,28 +42,28 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | Файл | Что внутри |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Как связаны основные компоненты |
-| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения |
+| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (7 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/roadmap.md](docs/roadmap.md) | Что уже сделано и что планируется дальше |
 | [terraform/](terraform/) | Terraform-код для VM в Proxmox |
 | [ansible/README.md](ansible/README.md) | Ansible control node, inventory, playbooks |
+| [scripts/README.md](scripts/README.md) | Backup-скрипты для OpenBao и MinIO |
 
 ## Текущее состояние
 
-Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform.
+Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR.
 
 Открытые задачи:
 
-- backup/restore — проверить восстановление хотя бы одного сервиса;
-- monitoring debt — Loki isDefault постоянный фикс через Git;
-- secrets — Alertmanager SMTP через OpenBao Injector;
+- Backup для OpenBao и MinIO реализован; snapshot OpenBao проверен restore-тестом в изолированном окружении — успешный init, unseal и подтверждение целостности данных.
+- secrets — Alertmanager SMTP через OpenBao Injector (низкий приоритет: пароль уже вне Git, через K8s Secret + file mount);
 - security — firewall rules, Registry auth/TLS.
 
 ## Ограничения
 
 - Один control-plane в k3s не даёт отказоустойчивости control-plane.
-- NFS является точкой отказа для stateful workload — нужен проверенный backup/restore.
-- Backup без проверенного restore не считается завершённым.
+- NFS является точкой отказа для stateful workload.
+- Backup реализован для OpenBao и MinIO, restore проверен в изолированном тестовом окружении.
 
 ## Зачем этот репозиторий
 
