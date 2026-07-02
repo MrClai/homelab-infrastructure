@@ -11,9 +11,9 @@
 
 set -euo pipefail
 
-PI5_HOST="${PI5_HOST:-user@pi5.homelab.local}"   # переопредели через переменную окружения
+PI5_HOST="${PI5_HOST:-clai@192.168.1.10}"   # переопредели через переменную окружения
                                                    # или впиши свой реальный хост/IP перед запуском
-REMOTE_BACKUP_PATH="/mnt/minio/backups"
+REMOTE_BACKUP_PATH="/home/clai/homelab/backups"
 LOCAL_BACKUP_DIR="${HOME}/homelab-backups/$(date +%F)"
 
 mkdir -p "${LOCAL_BACKUP_DIR}"
