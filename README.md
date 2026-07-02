@@ -51,11 +51,11 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 ## Текущее состояние
 
-Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR.
+Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR. Backup для OpenBao и MinIO реализован, restore обоих проверен в изолированных тестовых окружениях.
 
 Открытые задачи:
 
-- Backup для OpenBao и MinIO реализован; snapshot OpenBao проверен restore-тестом в изолированном окружении — успешный init, unseal и подтверждение целостности данных.
+- backup — offsite-копия на отдельную машину (скрипт написан, первый прогон впереди) и restore-runbook;
 - secrets — Alertmanager SMTP через OpenBao Injector (низкий приоритет: пароль уже вне Git, через K8s Secret + file mount);
 - security — firewall rules, Registry auth/TLS.
 
@@ -63,7 +63,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 - Один control-plane в k3s не даёт отказоустойчивости control-plane.
 - NFS является точкой отказа для stateful workload.
-- Backup реализован для OpenBao и MinIO, restore проверен в изолированном тестовом окружении.
+- Backup реализован для OpenBao и MinIO, restore обоих проверен в изолированных окружениях; offsite-копия пока не автоматизирована.
 
 ## Зачем этот репозиторий
 

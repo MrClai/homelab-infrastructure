@@ -86,9 +86,16 @@ ansible-playbook playbooks/healthcheck.yml
 
 ## Backup / Restore
 
-Backup считается полезным только после проверки restore.
-
 Что бэкапится: OpenBao (Raft snapshot) и MinIO (self-archive, включая Terraform state). Gitea исключена из scope — репозитории дублируются на локальной машине и на GitHub, поэтому не является точкой отказа.
+Restore проверен для обоих сервисов в изолированных окружениях, прод не затрагивался:
+
+- OpenBao: snapshot восстановлен в отдельный Docker-инстанс — init, unseal
+  и Raft committed index подтверждают целостность данных.
+- MinIO: архив распакован в отдельный каталог, тестовый контейнер поднят
+  на портах 9500/9501, `terraform.tfstate` прочитан через `mc cat` —
+  валидный JSON, version 4.
+
+Backup: MinIO-архив содержит и OpenBao-снапшот (bucket `backups/`), то есть один архив покрывает оба критичных актива.
 
 ```bash
 # На VM104 (OpenBao)
