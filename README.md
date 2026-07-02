@@ -55,7 +55,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 Открытые задачи:
 
-- backup — offsite-копия на отдельную машину (скрипт написан, первый прогон впереди) и restore-runbook;
+- backup — restore-runbook и автоматизация offsite-копии (сейчас запускается вручную);
 - secrets — Alertmanager SMTP через OpenBao Injector (низкий приоритет: пароль уже вне Git, через K8s Secret + file mount);
 - security — firewall rules, Registry auth/TLS.
 
