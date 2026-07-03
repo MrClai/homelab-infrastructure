@@ -20,7 +20,7 @@
 - Monitoring fix — Loki isDefault зафиксирован постоянно в values.yaml, подтверждён в Helm-управляемом ConfigMap.
 - Architecture decisions — 7 ADR опубликованы в docs/decisions.md (k3s, Proxmox, OpenBao, ArgoCD, Terraform, MinIO, GL-MT6000).
 - Backup — реализован backup для OpenBao (Raft snapshot) и MinIO (self-archive), оба загружаются в MinIO bucket с offsite-копией на отдельной машине. Restore проверен в изолированном окружении: snapshot успешно восстанавливается, init и unseal проходят корректно.
-
+- Restore runbook — оформлена пошаговая инструкция по восстановлению бекапов 
 ## Next
 
 - Security — firewall rules, Registry auth/TLS, Portainer docker.sock risk.
