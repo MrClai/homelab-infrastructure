@@ -45,6 +45,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (7 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/roadmap.md](docs/roadmap.md) | Что уже сделано и что планируется дальше |
+| [docs/runbook-restore.md](docs/runbook-restore.md) | Пошаговая инструкция по восстановлению backups |
 | [terraform/](terraform/) | Terraform-код для VM в Proxmox |
 | [ansible/README.md](ansible/README.md) | Ansible control node, inventory, playbooks |
 | [scripts/README.md](scripts/README.md) | Backup-скрипты для OpenBao и MinIO |
@@ -55,7 +56,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 Открытые задачи:
 
-- backup — restore-runbook и автоматизация offsite-копии (сейчас запускается вручную);
+- backup — автоматизация offsite-копии (сейчас запускается вручную);
 - secrets — Alertmanager SMTP через OpenBao Injector (низкий приоритет: пароль уже вне Git, через K8s Secret + file mount);
 - security — firewall rules, Registry auth/TLS.
 
