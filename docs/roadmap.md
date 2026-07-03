@@ -24,7 +24,3 @@
 ## Next
 
 - Security — firewall rules, Registry auth/TLS, Portainer docker.sock risk.
-
-## Later
-
-- Restore runbook — оформить пошаговую инструкцию на основе уже проверенного restore-сценария.
