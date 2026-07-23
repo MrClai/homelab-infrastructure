@@ -3,7 +3,7 @@ resource "proxmox_virtual_environment_vm" "vm1" {
   name            = "k3s-worker-01"
   node_name       = var.node_name
   vm_id           = 101
-  on_boot         = false
+  on_boot         = true
   scsi_hardware   = "virtio-scsi-single"
   keyboard_layout = "en-us"
   started         = true
@@ -46,7 +46,7 @@ resource "proxmox_virtual_environment_vm" "vm2" {
   name            = "Gitea"
   node_name       = var.node_name
   vm_id           = 102
-  on_boot         = false
+  on_boot         = true
   scsi_hardware   = "virtio-scsi-single"
   keyboard_layout = "en-us"
   started         = true
@@ -88,7 +88,7 @@ resource "proxmox_virtual_environment_vm" "vm3" {
   name            = "woodpecker"
   node_name       = var.node_name
   vm_id           = 103
-  on_boot         = false
+  on_boot         = true
   scsi_hardware   = "virtio-scsi-single"
   keyboard_layout = "en-us"
   started         = true
@@ -130,7 +130,7 @@ resource "proxmox_virtual_environment_vm" "vm_openbao" {
   name            = "openbao"
   node_name       = var.node_name
   vm_id           = 104
-  on_boot         = false
+  on_boot         = true
   scsi_hardware   = "virtio-scsi-single"
   keyboard_layout = "en-us"
   started         = true

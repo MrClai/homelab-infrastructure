@@ -2,6 +2,8 @@
 
 Практические проверки, которые помогают понять, что homelab работает ожидаемо.
 
+Этот документ описывает проверки текущего состояния. Для безопасного внесения изменений используется отдельный порядок [Infrastructure Change Validation](ops/infrastructure-change-validation.md).
+
 ## Kubernetes
 
 Что проверять:
@@ -87,7 +89,7 @@ ansible-playbook playbooks/healthcheck.yml
 ## Backup / Restore
 
 Что бэкапится: OpenBao (Raft snapshot) и MinIO (self-archive, включая Terraform state). Gitea исключена из scope — репозитории дублируются на локальной машине и на GitHub, поэтому не является точкой отказа.
-Restore проверен для обоих сервисов в изолированных окружениях, прод не затрагивался:
+Restore проверен для обоих сервисов в изолированном окружении и на фактическом сценарии отказа:
 
 - OpenBao: snapshot восстановлен в отдельный Docker-инстанс — init, unseal
   и Raft committed index подтверждают целостность данных.
@@ -108,4 +110,4 @@ Backup: MinIO-архив содержит и OpenBao-снапшот (bucket `bac
 ./scripts/fetch-backups-to-laptop.sh
 ```
 
-Restore тестировался в изолированном Docker-инстансе на отдельной машине, не затрагивая прод. Snapshot OpenBao успешно восстанавливается: после restore инстанс проходит init и unseal, Raft committed index подтверждает наличие реальных данных.
+Restore также тестировался в изолированном Docker-инстансе на отдельной машине. Snapshot OpenBao успешно восстанавливается: после restore инстанс проходит init и unseal, Raft committed index подтверждает наличие реальных данных.

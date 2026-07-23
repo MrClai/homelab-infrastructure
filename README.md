@@ -42,8 +42,10 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | Файл | Что внутри |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Как связаны основные компоненты |
-| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (7 ADR) |
+| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (8 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
+| [docs/ops/infrastructure-change-validation.md](docs/ops/infrastructure-change-validation.md) | Порядок проверки изменений Terraform, Ansible и Kubernetes |
+| [docs/ops/security-baseline.md](docs/ops/security-baseline.md) | Применённые настройки безопасности и отложенные hardening-задачи |
 | [docs/roadmap.md](docs/roadmap.md) | Что уже сделано и что планируется дальше |
 | [docs/runbook-restore.md](docs/runbook-restore.md) | Пошаговая инструкция по восстановлению backups |
 | [terraform/](terraform/) | Terraform-код для VM в Proxmox |
@@ -52,19 +54,20 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 ## Текущее состояние
 
-Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR. Backup для OpenBao и MinIO реализован, restore обоих проверен в изолированных тестовых окружениях.
+Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR. Backup для OpenBao и MinIO реализован, restore проверен в изолированном окружении и на фактическом сценарии отказа.
 
-Открытые задачи:
+## Открытые задачи
 
-- backup — автоматизация offsite-копии (сейчас запускается вручную);
-- secrets — Alertmanager SMTP через OpenBao Injector (низкий приоритет: пароль уже вне Git, через K8s Secret + file mount);
-- security — firewall rules, Registry auth/TLS.
+- автоматизация offsite-копирования backup;
+- Registry auth/TLS и сетевые ограничения;
+- Internal CA и TLS для MinIO S3 API;
+- firewall zones.
 
 ## Ограничения
 
 - Один control-plane в k3s не даёт отказоустойчивости control-plane.
 - NFS является точкой отказа для stateful workload.
-- Backup реализован для OpenBao и MinIO, restore обоих проверен в изолированных окружениях; offsite-копия пока не автоматизирована.
+- Backup реализован для OpenBao и MinIO, restore проверен в изолированном окружении и на фактическом сценарии отказа; offsite-копия пока не автоматизирована.
 
 ## Зачем этот репозиторий
 

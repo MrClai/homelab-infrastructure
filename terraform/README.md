@@ -61,7 +61,13 @@ terraform {
 
 ### Провайдер
 
-`providers.tf` использует `insecure = true` — Proxmox работает с самоподписанным сертификатом.
+`providers.tf` использует `insecure = false`. Самоподписанный сертификат Proxmox добавлен в доверенное хранилище на машине, с которой запускается Terraform. Отключение проверки TLS не используется.
+
+### Автозапуск VM
+
+Для VM101–VM104 задано `on_boot = true`: Proxmox запускает их после старта гипервизора. Для VM105 (`ansible-control`) задано `on_boot = false`, потому что control node не требуется поднимать автоматически.
+
+Параметр `started = true` отвечает за состояние VM после применения Terraform. Блок `startup` намеренно не используется: настройка порядка запуска требует расширенного права `Sys.Modify` на корне Proxmox (`/`), что нарушает выбранную модель least privilege для Terraform-токена.
 
 ### Переменные
 
@@ -120,4 +126,7 @@ terraform apply
 - `terraform plan` = No changes для всех трёх VM
 - VM104 (openbao) и VM105 (ansible-control) созданы через Terraform с cloud-init
 - SSH-ключи прокинуты через cloud-init, не через `ssh-copy-id`
+- VM101–VM104 настроены с `on_boot = true`, VM105 — с `on_boot = false`; порядок запуска через `startup` не используется
+- Проверка TLS Proxmox включена (`insecure = false`); CA доверена на control node
+- `terraform plan` после изменений подтвердил ожидаемый in-place update без создания или удаления VM
 - Код в Gitea: `http://gitea.homelab.local:3000/igor/homelab-terraform`
