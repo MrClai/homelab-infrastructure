@@ -36,7 +36,7 @@ homelab-ansible/
 [defaults]
 inventory = inventories/homelab/hosts.ini
 remote_user = ansible
-host_key_checking = False
+host_key_checking = True
 retry_files_enabled = False
 
 [ssh_connection]
