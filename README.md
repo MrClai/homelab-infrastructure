@@ -45,6 +45,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (8 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/ops/k3s-upgrade.md](docs/ops/k3s-upgrade.md) | Апгрейд k3s-кластера 1.32 → 1.35 |
+| [docs/ops/ansible-ssh-auth-incident.md](docs/ops/ansible-ssh-auth-incident.md) | Инцидент: SSH-аутентификация Ansible под `ansible` не применялась |
 | [docs/ops/infrastructure-change-validation.md](docs/ops/infrastructure-change-validation.md) | Порядок проверки изменений Terraform, Ansible и Kubernetes |
 | [docs/ops/security-baseline.md](docs/ops/security-baseline.md) | Применённые настройки безопасности и отложенные hardening-задачи |
 | [docs/roadmap.md](docs/roadmap.md) | Что уже сделано и что планируется дальше |
