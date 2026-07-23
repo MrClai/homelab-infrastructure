@@ -52,12 +52,6 @@ variable "vm_openbao_password" {
   sensitive   = true
 }
 
-variable "vm_user_password" {
-  description = "Password for VM user"
-  type        = string
-  sensitive   = true
-}
-
 variable "ssh_public_key" {
   description = "SSH public key for VM access"
   type        = string

@@ -85,7 +85,6 @@ export TF_VAR_vm_password="..."
 proxmox_password       = "..."
 vm_password            = "..."
 vm_openbao_password    = "..."
-vm_user_password       = "..."
 ssh_public_key         = "ssh-ed25519 ..."
 ssh_public_key_windows = "ssh-ed25519 ..."
 ```
