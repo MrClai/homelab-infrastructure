@@ -1,0 +1,15 @@
+# Конфиг yamllint для homelab CI.
+# Дефолтные правила рассчитаны на строгий production-стиль (80 символов в строке,
+# обязательный `---` в начале файла) — избыточно для Ansible playbooks и docs,
+# создаёт шум вместо полезных находок. Смягчено осознанно, не по умолчанию.
+
+extends: default
+
+rules:
+  line-length:
+    max: 160
+    level: warning        # не роняет пайплайн, только предупреждает
+  document-start: disable # Ansible playbooks у нас без `---` в начале — стиль проекта
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']  # Ansible активно использует yes/no
+  comments-indentation: disable

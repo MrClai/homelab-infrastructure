@@ -1,0 +1,32 @@
+when:
+  - event: [push, pull_request]
+
+steps:
+  - name: terraform-fmt
+    image: hashicorp/terraform:1.14
+    commands:
+      - terraform -chdir=terraform fmt -check -recursive
+
+  - name: terraform-validate
+    image: hashicorp/terraform:1.14
+    commands:
+      - cd terraform
+      # -backend=false: CI не получает доступ к реальному MinIO/креды,
+      # проверяем только синтаксис и внутреннюю согласованность конфига
+      - terraform init -backend=false -input=false
+      - terraform validate
+
+  - name: ansible-lint
+    image: cytopia/ansible-lint:latest
+    commands:
+      - ansible-lint ansible/playbooks/*.yml
+
+  - name: yamllint
+    image: cytopia/yamllint:latest
+    commands:
+      - yamllint -c .yamllint.yml ansible/ .woodpecker.yml
+
+  - name: shellcheck
+    image: koalaman/shellcheck-alpine:stable
+    commands:
+      - shellcheck scripts/*.sh

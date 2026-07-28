@@ -42,9 +42,11 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | Файл | Что внутри |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Как связаны основные компоненты |
-| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (8 ADR) |
+| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (11 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/ops/k3s-upgrade.md](docs/ops/k3s-upgrade.md) | Апгрейд k3s-кластера 1.32 → 1.35 |
+| [docs/ops/minio-tls-internal-ca.md](docs/ops/minio-tls-internal-ca.md) | Internal CA и TLS для MinIO: openssl, раздача доверия, инциденты |
+| [docs/ops/registry-tls-auth.md](docs/ops/registry-tls-auth.md) | TLS и htpasswd для Docker Registry, переход на docker-compose |
 | [docs/ops/ansible-ssh-auth-incident.md](docs/ops/ansible-ssh-auth-incident.md) | Инцидент: SSH-аутентификация Ansible под `ansible` не применялась |
 | [docs/ops/infrastructure-change-validation.md](docs/ops/infrastructure-change-validation.md) | Порядок проверки изменений Terraform, Ansible и Kubernetes |
 | [docs/ops/security-baseline.md](docs/ops/security-baseline.md) | Применённые настройки безопасности и отложенные hardening-задачи |

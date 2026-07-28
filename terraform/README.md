@@ -51,7 +51,7 @@ terraform {
   backend "s3" {
     bucket    = "terraform-state"
     key       = "homelab/terraform.tfstate"
-    endpoints = { s3 = "http://192.168.1.10:9002" }
+    endpoints = { s3 = "https://192.168.1.10:9002" }  # TLS с 27.07.2026, см. ADR-010
     ...
   }
 }

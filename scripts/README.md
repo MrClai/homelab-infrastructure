@@ -28,7 +28,7 @@ MinIO ────┘
 ## Перед использованием
 
 1. Установи MinIO client (`mc`) на машине, откуда запускаешь backup-скрипты.
-2. Настрой alias: `mc alias set homelab http://<MINIO_HOST>:<API_PORT> <ACCESS_KEY> <SECRET_KEY>`. Уточни реальный API-порт через `docker ps` — он может отличаться от дефолтного 9000 в зависимости от маппинга портов.
+2. Настрой alias: `mc alias set homelab https://<MINIO_HOST>:<API_PORT> <ACCESS_KEY> <SECRET_KEY>`. Уточни реальный API-порт через `docker ps` — он может отличаться от дефолтного 9000 в зависимости от маппинга портов. С 27.07.2026 MinIO работает только по TLS (см. ADR-010) — клиент должен доверять `homelab-root-ca.crt`, иначе `mc` откажет в подключении с ошибкой сертификата.
 3. В `fetch-backups-to-laptop.sh` укажи свой хост через переменную `PI5_HOST`, либо пропиши его прямо в скрипте.
 
 
