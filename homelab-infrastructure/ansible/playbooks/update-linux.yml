@@ -1,0 +1,19 @@
+---
+- name: Update Linux setup
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Install tmux
+      ansible.builtin.apt:
+        name: tmux
+        state: present
