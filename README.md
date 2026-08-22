@@ -42,7 +42,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | Файл | Что внутри |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | Как связаны основные компоненты |
-| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (11 ADR) |
+| [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (12 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/ops/k3s-upgrade.md](docs/ops/k3s-upgrade.md) | Апгрейд k3s-кластера 1.32 → 1.35 |
 | [docs/ops/minio-tls-internal-ca.md](docs/ops/minio-tls-internal-ca.md) | Internal CA и TLS для MinIO: openssl, раздача доверия, инциденты |
@@ -58,20 +58,18 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 ## Текущее состояние
 
-Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR. Backup для OpenBao и MinIO реализован, restore проверен в изолированном окружении и на фактическом сценарии отказа.
+Основная часть инфраструктуры собрана и работает: Kubernetes, GitOps, мониторинг, сеть через GL-MT6000, NFS storage, MinIO, OpenBao, Ansible и удалённый доступ через FRP. VM в Proxmox описаны через Terraform. Архитектурные решения задокументированы как ADR. Internal CA и TLS для MinIO, TLS и auth для Docker Registry — закрыты. Backup для OpenBao и MinIO реализован, restore проверен в изолированном окружении; runbook также описывает процедуру для реального отказа, но она пока не прогонялась на практике.
 
 ## Открытые задачи
 
 - автоматизация offsite-копирования backup;
-- Registry auth/TLS и сетевые ограничения;
-- Internal CA и TLS для MinIO S3 API;
 - firewall zones.
 
 ## Ограничения
 
 - Один control-plane в k3s не даёт отказоустойчивости control-plane.
 - NFS является точкой отказа для stateful workload.
-- Backup реализован для OpenBao и MinIO, restore проверен в изолированном окружении и на фактическом сценарии отказа; offsite-копия пока не автоматизирована.
+- Backup реализован для OpenBao и MinIO, restore проверен в изолированном окружении; процедура для реального отказа задокументирована в runbook, но не проверена на практике; offsite-копия пока не автоматизирована.
 
 ## Зачем этот репозиторий
 

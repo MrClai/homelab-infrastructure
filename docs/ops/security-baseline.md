@@ -66,6 +66,14 @@ Terraform подключается к Proxmox по HTTPS с включённой
 - Удалённый доступ проходит через FRP и VPS.
 - Публикация сервисов выполняется через явно настроенные ingress и DNS-имена.
 
+## MinIO TLS и internal CA
+
+Закрыто 27.07.2026 (см. [ADR-009](../decisions.md#adr-009-minio-остаётся-вне-кластера-k3s), [ADR-010](../decisions.md#adr-010-internal-ca-для-tls-внутренних-сервисов) и [minio-tls-internal-ca.md](minio-tls-internal-ca.md)). Поднят собственный internal CA: корневой ключ 4096 бит, самоподпись на 10 лет (до 2036), приватный ключ живёт на VM105 (ansible-control), а не на Pi5, который непосредственно обслуживает трафик. Листовой сертификат MinIO — 2048 бит, год жизни (до 27.07.2027); короткий срок вместо CRL/OCSP, которых в этом контуре нет.
+
+MinIO переведён в TLS-only режим — HTTP не обслуживается вообще, как только сервер находит сертификаты. Доверие корню роздано всем шести хостам через Ansible (`playbooks/distribute-ca.yml`). Подтверждено фактом: `openssl s_client` — `Verify return code: 0 (ok)`. Terraform S3 backend и оба backup-скрипта (`backup-minio.sh`, `backup-openbao.sh`) переключены на `https://` и проверены (`terraform plan` → `No changes`, `mc ls` без ошибок цепочки).
+
+Известный мелкий долг: при диагностике одного из инцидентов переключения `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` были на короткое время вставлены в рабочий чат в открытом виде. Для homelab не критично, но по тому же принципу, что и утечка в чат — считается компрометацией; ключ подлежит ротации через `mc admin accesskey`, не блокирует.
+
 ## Registry TLS и auth
 
 Закрыто 28.07.2026 (см. [ADR-011](../decisions.md#adr-011-tls-и-basic-auth-для-docker-registry) и [registry-tls-auth.md](registry-tls-auth.md)). Registry переведён на TLS (сертификат от internal CA, ADR-010) и `htpasswd`-auth (bcrypt). Подтверждено фактом: `openssl s_client` — `Verify return code: 0 (ok)`, реальный `push`/`pull` через TLS с авторизацией. Заодно переведён с голого `docker run` на `docker-compose.yaml`.

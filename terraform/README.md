@@ -129,3 +129,5 @@ terraform apply
 - Проверка TLS Proxmox включена (`insecure = false`); CA доверена на control node
 - `terraform plan` после изменений подтвердил ожидаемый in-place update без создания или удаления VM
 - Код в Gitea: `http://gitea.homelab.local:3000/igor/homelab-terraform`
+
+На 2026-07-27 backend переключён на HTTPS (собственный internal CA, см. `docs/ops/minio-tls-internal-ca.md`): `terraform init -reconfigure` выполнен, `terraform plan` подтвердил `No changes. Your infrastructure matches the configuration.`

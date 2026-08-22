@@ -89,7 +89,7 @@ ansible-playbook playbooks/healthcheck.yml
 ## Backup / Restore
 
 Что бэкапится: OpenBao (Raft snapshot) и MinIO (self-archive, включая Terraform state). Gitea исключена из scope — репозитории дублируются на локальной машине и на GitHub, поэтому не является точкой отказа.
-Restore проверен для обоих сервисов в изолированном окружении и на фактическом сценарии отказа:
+Restore проверен для обоих сервисов в изолированном окружении:
 
 - OpenBao: snapshot восстановлен в отдельный Docker-инстанс — init, unseal
   и Raft committed index подтверждают целостность данных.
@@ -109,5 +109,3 @@ Backup: MinIO-архив содержит и OpenBao-снапшот (bucket `bac
 # На локальной машине, при подключении к домашней сети
 ./scripts/fetch-backups-to-laptop.sh
 ```
-
-Restore также тестировался в изолированном Docker-инстансе на отдельной машине. Snapshot OpenBao успешно восстанавливается: после restore инстанс проходит init и unseal, Raft committed index подтверждает наличие реальных данных.

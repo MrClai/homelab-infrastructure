@@ -76,7 +76,7 @@ SAN сразу с DNS-именем и IP — фактический способ
 htpasswd -Bbn ci '<пароль>' > /opt/homelab-ca/registry_htpasswd
 ```
 
-Споткнулись на `Permission denied` — `/opt/homelab-ca` целиком принадлежит `root` (создавался через `sudo mkdir` в фазах A7). Фикс: `sudo htpasswd ... | sudo tee файл`. Отдельно проверили, что `sudo tee` не оставил лишнюю пустую строку в файле (`awk -F: '{print length($2)}'` вернул два значения вместо одного — `60` и `0`); почищено `sed -i '/^$/d'`.
+Споткнулись на `Permission denied` — `/opt/homelab-ca` целиком принадлежит `root` (создавался через `sudo mkdir` при настройке internal CA). Фикс: `sudo htpasswd ... | sudo tee файл`. Отдельно проверили, что `sudo tee` не оставил лишнюю пустую строку в файле (`awk -F: '{print length($2)}'` вернул два значения вместо одного — `60` и `0`); почищено `sed -i '/^$/d'`.
 
 **`config.yml`** — дефолтный из образа плюс секции `tls` и `auth`:
 
@@ -177,7 +177,7 @@ level=info msg="listening on [::]:5000, tls" ... version=2.8.3
 
 DNS-запись `registry.homelab.local → 192.168.1.10` уже резолвилась на момент проверки — добавлена заранее, отдельного шага не потребовалось.
 
-Цепочка доверия — с самого Pi5, где корень уже стоит в системном trust store (раздан в A7):
+Цепочка доверия — с самого Pi5, где корень уже стоит в системном trust store (раздан ранее):
 
 ```bash
 openssl s_client -connect 192.168.1.10:5000 -CAfile /usr/local/share/ca-certificates/homelab-root-ca.crt </dev/null
@@ -196,7 +196,7 @@ docker pull registry.homelab.local:5000/test-alpine:latest   # Downloaded
 
 **Побочная находка:** `docker login` предупредил, что креды в `~/.docker/config.json` хранятся не в зашифрованном виде (base64, не plaintext, но и не шифрование). Для homelab не критично — принято как известный мелкий долг, не блокирует закрытие задачи. Решение при желании: credential helper (`pass`, `secretservice`) на клиентских машинах.
 
-**Cleanup:** тестовый образ `test-alpine` в Registry — не production-нагрузка, можно удалить через `registry` garbage collection при следующем плановом обслуживании; оставлен как есть, не блокирует закрытие A3.
+**Cleanup:** тестовый образ `test-alpine` в Registry — не production-нагрузка, можно удалить через `registry` garbage collection при следующем плановом обслуживании; оставлен как есть, не блокирует закрытие этой задачи.
 
 ## Известные грабли
 

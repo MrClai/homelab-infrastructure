@@ -38,10 +38,10 @@ inventory = inventories/homelab/hosts.ini
 remote_user = ansible
 host_key_checking = True
 retry_files_enabled = False
+private_key_file = ~/.ssh/ansible_id
 
 [ssh_connection]
 pipelining = True
-private_key_file = ~/.ssh/ansible_id
 ```
 
 ## Inventory
@@ -108,6 +108,12 @@ ping: pong
 - `playbooks/create-ansible-user.yml` — создан service account `ansible` на всех нодах, SSH-ключ прокинут
 - `ansible.cfg` переключён на пользователя `ansible` с отдельным SSH-ключом `~/.ssh/ansible_id`
 - `playbooks/update-linux.yml` — обновление apt кэша и пакетов на всех нодах
+
+На 2026-07-27 выполнено (подробности — `docs/ops/security-baseline.md`, раздел «Automation account privileges»):
+
+- `ansible`-учётке выдан `NOPASSWD` sudo на всех управляемых хостах (`/etc/sudoers.d/ansible-nopasswd`), bootstrap выполнен один раз вручную через `clai`
+- `private_key_file` перенесён в правильную секцию `[defaults]` — раньше стоял в `[ssh_connection]` и молча игнорировался Ansible (см. `docs/ops/ansible-ssh-auth-incident.md`)
+- `host_key_checking = True` подтверждён в рабочем `ansible.cfg`
 
 ## Следующие шаги
 
