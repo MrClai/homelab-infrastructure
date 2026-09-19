@@ -1,0 +1,14 @@
+---
+- name: Grant ansible user passwordless sudo
+  hosts: all
+  remote_user: clai
+  become: true
+  tasks:
+    - name: Allow ansible user passwordless sudo
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/ansible-nopasswd
+        content: "ansible ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: 'visudo -cf %s'

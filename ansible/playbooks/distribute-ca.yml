@@ -1,0 +1,17 @@
+---
+- name: Distribute Homelab Root CA to trust store
+  hosts: all
+  become: yes
+  tasks:
+    - name: Copy root CA certificate
+      ansible.builtin.copy:
+        src: /opt/homelab-ca/certs/ca.crt
+        dest: /usr/local/share/ca-certificates/homelab-root-ca.crt
+        owner: root
+        group: root
+        mode: '0644'
+      register: ca_copied
+
+    - name: Update CA trust store
+      ansible.builtin.command: update-ca-certificates
+      when: ca_copied.changed

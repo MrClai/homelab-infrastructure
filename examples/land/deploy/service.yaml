@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: land
+  namespace: land
+spec:
+  type: ClusterIP
+  selector:
+    app: land
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

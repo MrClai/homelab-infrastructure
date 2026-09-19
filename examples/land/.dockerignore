@@ -1,0 +1,4 @@
+.git
+site/public
+site/.hugo_build.lock
+**/.DS_Store

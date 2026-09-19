@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: land
+  namespace: land
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: land
+  template:
+    metadata:
+      labels:
+        app: land
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: land
+          image: registry.homelab.local:5000/land:cee7e25dc06e319b248c8deee38554c4564fec19
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi

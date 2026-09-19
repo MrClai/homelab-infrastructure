@@ -1,0 +1,29 @@
+when:
+  - event: push
+    branch: main
+
+steps:
+  - name: build-site
+    image: klakegg/hugo:0.111.3-ext-alpine
+    commands:
+      - hugo --source=site --destination=/tmp/land-public
+      - test -s /tmp/land-public/index.html
+
+  - name: build-and-push
+    image: docker:28-cli
+    environment:
+      REGISTRY_USERNAME:
+        from_secret: registry_username
+      REGISTRY_PASSWORD:
+        from_secret: registry_password
+      DOCKER_CONFIG: /tmp/docker-auth
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - docker build -t registry.homelab.local:5000/land:${CI_COMMIT_SHA} .
+      - set +x
+      - >-
+        printf '%s' "$${REGISTRY_PASSWORD}" |
+        docker login registry.homelab.local:5000
+        --username "$${REGISTRY_USERNAME}" --password-stdin
+      - docker push registry.homelab.local:5000/land:${CI_COMMIT_SHA}

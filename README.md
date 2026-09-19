@@ -45,6 +45,10 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | [docs/decisions.md](docs/decisions.md) | Почему выбраны эти решения (12 ADR) |
 | [docs/operations.md](docs/operations.md) | Что проверять при эксплуатации |
 | [docs/ops/k3s-upgrade.md](docs/ops/k3s-upgrade.md) | Апгрейд k3s-кластера 1.32 → 1.35 |
+| [docs/ops/woodpecker-upgrade.md](docs/ops/woodpecker-upgrade.md) | Мажорное обновление Woodpecker CI 2.8.3 → 3.18.1: миграция БД, права volume, инструкция для следующих обновлений |
+| [docs/land-delivery.md](docs/land-delivery.md) | Архитектура доставки land: конфигурация, зависимости, выпуск версии и откат |
+| [examples/land/](examples/land/README.md) | Dockerfile, Woodpecker pipeline и Kubernetes-манифесты land |
+| [docs/ops/land-gitops-delivery.md](docs/ops/land-gitops-delivery.md) | Доставка land через Woodpecker и ArgoCD: сборка образа, диагностика DNS/LVM, неудачный rollout и возврат через Git |
 | [docs/ops/minio-tls-internal-ca.md](docs/ops/minio-tls-internal-ca.md) | Internal CA и TLS для MinIO: openssl, раздача доверия, инциденты |
 | [docs/ops/registry-tls-auth.md](docs/ops/registry-tls-auth.md) | TLS и htpasswd для Docker Registry, переход на docker-compose |
 | [docs/ops/ansible-ssh-auth-incident.md](docs/ops/ansible-ssh-auth-incident.md) | Инцидент: SSH-аутентификация Ansible под `ansible` не применялась |
