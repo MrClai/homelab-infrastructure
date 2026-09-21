@@ -93,11 +93,14 @@ Restore проверен для обоих сервисов в изолиров�
 
 - OpenBao: snapshot восстановлен в отдельный Docker-инстанс — init, unseal
   и Raft committed index подтверждают целостность данных.
-- MinIO: архив распакован в отдельный каталог, тестовый контейнер поднят
-  на портах 9500/9501, `terraform.tfstate` прочитан через `mc cat` —
-  валидный JSON, version 4.
+- MinIO: 21.09.2026 свежий production-архив восстановлен на VM103 в
+  отдельный пустой MinIO на loopback-портах 19000/19001. Объект
+  `terraform.tfstate` возвращён через `mc mirror`; SHA-256 до и после
+  восстановления совпал, JSON валиден. Production MinIO не останавливался.
 
-Backup: MinIO-архив содержит и OpenBao-снапшот (bucket `backups/`), то есть один архив покрывает оба критичных актива.
+OpenBao snapshot и MinIO self-backup — отдельные артефакты в bucket `backups/`.
+`backup-minio.sh` намеренно исключает весь bucket `backups`, чтобы не создавать
+рекурсивный «backup внутри backup». Offsite-скрипт забирает оба вида артефактов.
 
 ```bash
 # На VM104 (OpenBao)

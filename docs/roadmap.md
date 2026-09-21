@@ -19,7 +19,7 @@
 - Kubernetes cleanup — тестовые workloads и namespace удалены.
 - Monitoring fix — Loki isDefault зафиксирован постоянно в values.yaml, подтверждён в Helm-управляемом ConfigMap.
 - Architecture decisions — 12 ADR опубликованы в docs/decisions.md (k3s, Proxmox, OpenBao, ArgoCD, Terraform, MinIO, GL-MT6000, политика прав Terraform и автозапуска VM, размещение MinIO вне кластера, internal CA для TLS, TLS и auth для Docker Registry, reclaim policy для критичных PV мониторинга).
-- Backup — реализован backup для OpenBao (Raft snapshot) и MinIO (self-archive), оба загружаются в MinIO bucket с offsite-копией на отдельной машине. Restore проверен в изолированном окружении: snapshot успешно восстанавливается, init и unseal проходят корректно. Процедура для реального отказа задокументирована в runbook, но не прогонялась на практике.
+- Backup — реализован backup для OpenBao (Raft snapshot) и MinIO (self-archive), оба загружаются в MinIO bucket с offsite-копией на отдельной машине. Restore OpenBao проверен в отдельном Docker-инстансе. Свежий production-архив MinIO восстановлен 21.09.2026 в отдельный пустой MinIO через S3 API; SHA-256 объекта до и после совпал. Аварийная замена production-инстанса не прогонялась.
 - Restore runbook — оформлена пошаговая инструкция по восстановлению бекапов.
 
 ## Закрытые изменения после базовой версии
@@ -27,7 +27,7 @@
 - VM autostart — `on_boot = true` для VM101–VM104, `on_boot = false` для VM105; `startup` не используется из-за расширенного права `Sys.Modify` на `/`.
 - Proxmox TLS — проверка сертификата включена (`insecure = false`), CA доверена на Terraform control node.
 - SSH host keys — `host_key_checking = True`, fingerprints узлов проверены до рабочего подключения.
-- Restore after failure — процедура на случай реального отказа задокументирована в runbook (не прогонялась на практике).
+- Restore after failure — проверочный restore production-бэкапа MinIO выполнен в изолированной цели; аварийное переключение production-инстанса задокументировано, но не прогонялось при реальном отказе.
 - MinIO PKI — развёрнут собственный internal CA, MinIO переведён на HTTPS-only с сертификатом от него; Terraform backend и оба backup-скрипта переключены и проверены.
 - Registry hardening — TLS (тот же internal CA) и basic auth (bcrypt) для локального Docker Registry; заодно сервис переведён с голого `docker run` на `docker-compose.yaml`.
 - PV reclaim policy — критичные PersistentVolume мониторинга (Prometheus, Grafana, Loki, Alertmanager) переведены на `Retain`; заведён отдельный StorageClass для будущих критичных сервисов, чтобы не менять поведение по умолчанию для временных нагрузок.

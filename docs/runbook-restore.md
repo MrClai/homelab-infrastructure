@@ -2,7 +2,7 @@
 
 Пошаговая процедура восстановления критичных данных homelab: MinIO (object storage, включая Terraform state) и OpenBao (секреты).
 
-Обе процедуры проверены реальными прогонами: MinIO — 02.07.2026, OpenBao — 02–03.07.2026. Все команды в проверочных сценариях выполнялись дословно.
+Обе процедуры проверены реальными прогонами: OpenBao — 02–03.07.2026; MinIO в текущем объектном формате — 21.09.2026 на свежем production-бэкапе. Рабочие сервисы не использовались как цели восстановления.
 
 Цель документа: восстановление должно быть повторяемо без героизма — уставшим человеком, по шагам, с проверкой результата после каждого шага.
 
@@ -12,49 +12,69 @@
 
 ## Перед стартом — общие правила
 
-1. **Найди самый свежий архив:**
+1. **Найди самый свежий архив и его checksum:**
 
    ```bash
-   ls -lh ~/homelab/backups/minio-self/                 # на Pi5
-   ls -lh ~/homelab-backups/*/backups/minio-self/       # offsite, WSL на ноутбуке
+   mc ls homelab/backups/minio-self/                     # если production MinIO доступен
+   export OFFSITE_BACKUP_DIR='/путь/к/offsite-копии'
+   find "${OFFSITE_BACKUP_DIR}" -path '*/backups/minio-self/*' -type f
    ```
 
    Данные в архиве соответствуют моменту снятия backup. Всё, что менялось
    после, при restore теряется — прими это решение осознанно до начала.
 
-2. **Проверь, что архив содержит данные бакетов, а не только служебные файлы:**
+2. **Скопируй архив в рабочий каталог и проверь checksum до распаковки.**
+   Файл `.sha256` содержит только hash, без имени файла:
 
    ```bash
-   tar -tzf <архив> | grep -v '.minio.sys'
+   export ARCHIVE='minio-backup-YYYY-MM-DD_HHMMSS.tar.gz'
+   mkdir -p ~/minio-restore-lab/{archive,source,minio-data}
+   mc cp "homelab/backups/minio-self/${ARCHIVE}" ~/minio-restore-lab/archive/
+   mc cp "homelab/backups/minio-self/${ARCHIVE}.sha256" ~/minio-restore-lab/archive/
+
+   expected=$(tr -d '[:space:]' < "$HOME/minio-restore-lab/archive/${ARCHIVE}.sha256")
+   actual=$(sha256sum "$HOME/minio-restore-lab/archive/${ARCHIVE}" | awk '{print $1}')
+   test "${actual}" = "${expected}" && echo "checksum OK"
    ```
 
-   Ожидаемо — бакеты верхнего уровня, минимум:
+   Если production MinIO недоступен, скопируй оба файла из offsite-копии,
+   затем выполни ту же проверку.
+
+3. **Проверь структуру и распакуй архив:**
+
+   ```bash
+   tar -tzf "$HOME/minio-restore-lab/archive/${ARCHIVE}"
+   tar -xzf "$HOME/minio-restore-lab/archive/${ARCHIVE}" \
+     -C ~/minio-restore-lab/source
+   ```
+
+   Ожидаемо — логическая структура `<бакет>/<объект>`, например:
 
    ```
-   ./terraform-state/homelab/terraform.tfstate/xl.meta
-   ./backups/openbao/openbao-snapshot-<дата>.snap/xl.meta
+   ./terraform-state/homelab/terraform.tfstate
    ```
 
-   Если этого нет — архив неполноценный: возьми более ранний и разберись
-   с backup-скриптом ДО restore.
+   В архиве не должно быть `.minio.sys` и `xl.meta`: это признаки старого
+   сырого формата. Текущий архив содержит объекты, снятые через S3 API.
 
-3. **Порядок backup имеет значение:** OpenBao-снапшот попадает внутрь
-   MinIO-архива, только если `backup-minio.sh` запущен ПОСЛЕ
-   `backup-openbao.sh`. Свежесть снапшота видна по его имени в выводе шага 2.
+4. **OpenBao snapshot хранится отдельно.** `backup-minio.sh` исключает весь
+   bucket `backups`, чтобы не архивировать backup внутри backup. Для полного
+   восстановления нужны два набора: `backups/minio-self/` и
+   `backups/openbao/` из MinIO либо offsite-копии.
 
-4. **Ключи — до начала, не после.** Restore OpenBao без продовых
+5. **Ключи — до начала, не после.** Restore OpenBao без продовых
    unseal-ключей и root token НЕВОЗМОЖЕН: снапшот зашифрован продовой
    печатью, сам бэкап ключей не содержит и не заменяет.
    Где лежат: полный комплект (5 unseal-ключей + Initial Root Token) —
    в менеджере паролей; три ключа — в `/usr/local/bin/openbao-unseal.sh`
    на VM104 (auto-unseal, threshold 3 из 5).
 
-5. **Хосты.** Тестовые restore выполняются на Pi5 (`clai@homelab`), ключи
-   живут на VM104 (`clai@openbao`). Перед каждой командой смотри на промпт —
-   команда на «не том» хосте даёт ложные ошибки вида
-   `No such container`.
+6. **Хосты.** Проверочный restore выполняется на отдельном хосте, не на Pi5.
+   Проверенный 21.09.2026 вариант — VM103 (`clai@woodpecker`), loopback-порты
+   `19000/19001`, лимиты 1 CPU / 512 MiB. Перед каждой командой смотри на
+   prompt: production и test должны оставаться разными целями.
 
-6. **Рабочий каталог — в `~`, не в `/tmp`.** `/tmp` очищается при
+7. **Рабочий каталог — в `~`, не в `/tmp`.** `/tmp` очищается при
    перезагрузке: тест, растянувшийся на два дня, теряет данные, снапшот
    и контейнер остаётся без начинки.
 
@@ -62,88 +82,112 @@
 
 ## Часть 1 — Restore MinIO
 
-MinIO в single-node режиме хранит объекты как каталоги
-`<bucket>/<object>/xl.meta` — данные мелких объектов лежат внутри `xl.meta`.
-Restore = распаковка файлового дерева + запуск MinIO поверх него: сервер
-сам читает `.minio.sys/` и поднимает бакеты.
+Текущий backup — логический export через S3 API (`mc mirror`). Он содержит
+`<bucket>/<object>`, но не внутреннее хранилище MinIO. Поэтому архив нельзя
+распаковать прямо в `/data`. Правильный restore: пустой MinIO создаёт свою
+служебную структуру, затем бакеты и объекты возвращаются через S3 API.
 
-### Вариант A — проверочный restore (проверен 02.07.2026)
+### Вариант A — проверочный restore (проверен 21.09.2026)
 
 Регулярная проверка бэкапов. Прод не затрагивает.
 
-1. Распаковать архив в изолированный каталог (пути в архиве относительные,
-   `-C` кладёт всё в указанный каталог):
+1. Узнать production-версию MinIO и выбрать доверенный образ с точным тегом:
 
    ```bash
-   mkdir -p /tmp/minio-restore-test
-   tar -xzf ~/homelab/backups/minio-self/<архив>.tar.gz -C /tmp/minio-restore-test
-   ls -la /tmp/minio-restore-test
+   docker exec minio minio --version                    # на Pi5, только чтение
+   export MINIO_IMAGE='quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z'
+   export MC_IMAGE='quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z'
    ```
 
-   Ожидаемо: `.minio.sys`, `terraform-state`, `backups`, `ci-artifacts`.
-   (/tmp здесь допустим: тест MinIO занимает минуты, не дни.)
+   Эти версии использованы в прогоне 21.09.2026 и совпадают с production
+   server/client на дату проверки. Перед будущим тестом снова сверить версии.
+   Не использовать плавающий `latest`; доступность и источник образа проверить.
 
-2. Тестовый MinIO на нестандартных портах:
+2. Запустить пустой тестовый MinIO на loopback-портах:
 
    ```bash
+   export RESTORE_PASSWORD="$(openssl rand -hex 16)"
    docker run -d --name minio-restore-test \
-     -p 9500:9000 -p 9501:9001 \
-     -v /tmp/minio-restore-test:/data \
-     minio/minio server /data --console-address ":9001"
-   docker logs minio-restore-test
+     --restart=no --cpus=1 --memory=512m \
+     -p 127.0.0.1:19000:9000 -p 127.0.0.1:19001:9001 \
+     -e MINIO_ROOT_USER=restoreadmin \
+     -e MINIO_ROOT_PASSWORD="${RESTORE_PASSWORD}" \
+     -v "$HOME/minio-restore-lab/minio-data:/data" \
+     "${MINIO_IMAGE}" server /data --console-address ':9001'
+
+   docker ps --filter 'name=minio-restore-test' \
+     --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
    ```
 
-   Ожидаемо: строки `API:` и `WebUI:` без фатальных ошибок.
-   Предупреждение про `default credentials minioadmin:minioadmin` — норма:
-   продовые креды тестовому инстансу не передаются, для чтения достаточно
-   дефолтных.
+   Ожидаемо: контейнер `Up`, оба порта привязаны только к `127.0.0.1`.
+   Production credentials тестовому инстансу не передаются.
 
-3. Проверка, что объекты видны и читаются (`mc` встроен в образ):
+3. Для каждого каталога верхнего уровня создать одноимённый bucket и вернуть
+   его содержимое. Пример для `terraform-state`:
 
    ```bash
-   docker exec minio-restore-test mc alias set local http://127.0.0.1:9000 minioadmin minioadmin
-   docker exec minio-restore-test mc ls --recursive local/
-   docker exec minio-restore-test mc cat local/terraform-state/homelab/terraform.tfstate | head -20
+   docker run --rm --network host \
+     -e "MC_HOST_test=http://restoreadmin:${RESTORE_PASSWORD}@127.0.0.1:19000" \
+     "${MC_IMAGE}" mb --ignore-existing test/terraform-state
+
+   docker run --rm --network host \
+     -e "MC_HOST_test=http://restoreadmin:${RESTORE_PASSWORD}@127.0.0.1:19000" \
+     -v "$HOME/minio-restore-lab/source/terraform-state:/restore:ro" \
+     "${MC_IMAGE}" mirror --overwrite /restore test/terraform-state
    ```
 
-   Ожидаемо: список объектов с размерами; `mc cat` выводит валидный JSON,
-   начинающийся с `"version": 4` и `"terraform_version"`.
+   Повторить для остальных bucket-каталогов из архива. Исходные каталоги
+   монтируются read-only.
 
-4. Уборка (обязательно):
+4. Проверить объект, не выводя содержимое Terraform state:
 
    ```bash
-   docker stop minio-restore-test && docker rm minio-restore-test
-   rm -rf /tmp/minio-restore-test
-   docker ps -a | grep minio    # тестового контейнера быть не должно
+   source_hash=$(sha256sum \
+     ~/minio-restore-lab/source/terraform-state/homelab/terraform.tfstate | awk '{print $1}')
+
+   restored_hash=$(docker run --rm --network host \
+     -e "MC_HOST_test=http://restoreadmin:${RESTORE_PASSWORD}@127.0.0.1:19000" \
+     "${MC_IMAGE}" cat test/terraform-state/homelab/terraform.tfstate | \
+     sha256sum | awk '{print $1}')
+
+   test "${source_hash}" = "${restored_hash}" && echo "object hash OK"
+   python3 -m json.tool \
+     ~/minio-restore-lab/source/terraform-state/homelab/terraform.tfstate \
+     >/dev/null && echo "JSON valid"
+   ```
+
+   В проверенном прогоне оба SHA-256 равны
+   `b5f29ef1efe2eb683be3d7bb4c6e5bbe08abf6b4af6301ea4d76149e9f48d23a`.
+
+5. Уборка после фиксации результата:
+
+   ```bash
+   docker rm -f minio-restore-test
+   unset RESTORE_PASSWORD MINIO_IMAGE MC_IMAGE ARCHIVE OFFSITE_BACKUP_DIR
+   docker ps -a --filter 'name=minio-restore-test'
+   # После проверки, что доказательства больше не нужны:
+   rm -rf ~/minio-restore-lab
    ```
 
 ### Вариант B — аварийный restore (процедура задокументирована, на реальном отказе не прогонялась)
 
-Прод MinIO: контейнер на Pi5, API на `:9002`, данные в `/mnt/minio`.
+Текущий архив не является копией `/mnt/minio`, поэтому распаковывать его прямо
+в production data directory нельзя.
 
-1. Остановить продовый контейнер (имя уточнить: `docker ps`):
+1. Зафиксировать причину отказа и выбрать точку восстановления по дате.
+2. Сохранить повреждённый data directory в стороне; не удалять до завершения
+   проверки и принятия нового состояния.
+3. Поднять новый пустой MinIO совместимой фиксированной версии с production
+   TLS и отдельным пустым data directory.
+4. Выполнить шаги Варианта A: checksum → распаковка → создание bucket →
+   `mc mirror` через S3 API.
+5. Проверить список и hash критичных объектов, затем доступ Terraform backend
+   и остальных клиентов.
+6. Только после проверки переключить клиентов/DNS на восстановленный MinIO.
+   Rollback — вернуть прежний endpoint и сохранённый data directory.
 
-   ```bash
-   docker stop <прод-контейнер-minio>
-   ```
-
-2. Убрать повреждённые данные В СТОРОНУ, не удаляя:
-
-   ```bash
-   sudo mv /mnt/minio /mnt/minio.broken.$(date +%F)
-   sudo mkdir -p /mnt/minio
-   ```
-
-3. Распаковать архив на продовое место и вернуть владельца
-   (uid:gid сверить с `/mnt/minio.broken.*`):
-
-   ```bash
-   sudo tar -xzf <архив> -C /mnt/minio
-   sudo chown -R <uid:gid> /mnt/minio
-   ```
-
-4. Запустить прод и проверить: `docker start`, `docker logs`,
-   затем критерии успеха (ниже).
+Аварийное переключение production не проверялось; выполняющий должен заранее
+уточнить актуальный compose, TLS paths, UID/GID и endpoint на Pi5.
 
 ---
 
@@ -153,9 +197,9 @@ Restore = распаковка файлового дерева + запуск Mi
 восстанавливается штатным `bao operator raft snapshot restore`.
 
 Откуда взять снапшот:
-- бакет `backups/openbao/` в MinIO (если MinIO жив или восстановлен — Часть 1);
-- изнутри offsite-архива MinIO: развернуть архив по Части 1 / Вариант A
-  и вытащить: `mc cp local/backups/openbao/<снапшот>.snap ...`;
+- бакет `backups/openbao/`, только если исходный MinIO ещё доступен;
+- из отдельной offsite-копии `backups/openbao/` (MinIO self-backup намеренно
+  не включает bucket `backups`);
 - `/tmp/openbao-snapshots/` на VM104 — НЕНАДЁЖНО: каталог эфемерный,
   пропадает при перезагрузке VM104.
 
@@ -319,7 +363,8 @@ Raft snapshot несёт всё состояние кластера, включ�
 ## Критерии успеха
 
 **MinIO восстановлен:**
-- `mc ls` показывает бакеты `terraform-state`, `backups`, `ci-artifacts`;
+- `mc ls` показывает все непустые бакеты, присутствовавшие в self-backup
+  (в проверенном архиве — `terraform-state`; bucket `backups` намеренно исключён);
 - `terraform.tfstate` читается и является валидным JSON;
 - (аварийный сценарий) `terraform plan` из homelab-terraform отрабатывает
   без ошибок доступа к backend.
@@ -344,6 +389,9 @@ Raft snapshot несёт всё состояние кластера, включ�
 | тестовый инстанс стал standby продового кластера | снапшот принёс адреса кластера, контейнер с LAN-доступом сам присоединился к проду | `--network none` при создании контейнера |
 | данные теста исчезли после перезагрузки | рабочий каталог был в `/tmp` | многодневные тесты — в `~` |
 | `No such container` | команда ушла в SSH-сессию другого хоста | смотреть на hostname в промпте |
+| `apt install mc` предлагает пакет, но MinIO-команды не работают | в Ubuntu пакет `mc` — Midnight Commander, не MinIO Client | использовать официальный MinIO Client или его контейнер |
+| `pull access denied for minio/minio` | исторический образ недоступен по старому адресу Docker Hub | использовать проверенный официальный источник и точный тег; 21.09.2026 сработал `quay.io/minio/*` |
+| после монтирования распакованного архива как `/data` бакеты не видны | текущий архив — логические объекты, а не внутреннее хранилище MinIO | поднять пустой MinIO, создать bucket и загрузить объекты через `mc mirror` |
 | `bao operator generate-root` → `405 unsupported operation` | НЕ УСТАНОВЛЕНА (инстанс active, unsealed; по документации должно работать) | открытый вопрос; обходной путь — продовый root token из менеджера паролей |
 
 ## Известные ограничения
