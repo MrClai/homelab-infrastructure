@@ -9,6 +9,7 @@
 - k3s-кластер из control-plane-ноды и двух worker-нод;
 - Proxmox VE host для виртуальных машин;
 - Terraform для управления VM в Proxmox (IaC);
+- шаблон Windows Server 2025 с Cloudbase-Init (учебная проверка guest customization);
 - Ansible для автоматизации Linux-нод (control node, inventory, playbooks);
 - Gitea как self-hosted Git;
 - Woodpecker CI для pipeline;
@@ -59,6 +60,14 @@ VM в Proxmox описаны через Terraform, базовая автомат
 | [terraform/](terraform/) | Terraform-код для VM в Proxmox |
 | [ansible/README.md](ansible/README.md) | Ansible control node, inventory, playbooks |
 | [scripts/README.md](scripts/README.md) | Backup-скрипты для OpenBao и MinIO |
+
+## Лабораторные эксперименты
+
+Проверки идей вне основной инфраструктуры: результат и границы описаны, но в рабочий flow они не встроены.
+
+| Файл | Что внутри |
+|---|---|
+| [docs/labs/windows-proxmox-template.md](docs/labs/windows-proxmox-template.md) | Windows Server 2025 шаблон для Proxmox: Cloudbase-Init, Sysprep, ConfigDrive2; пробный клон получает hostname, DHCP и пароль из Proxmox. Журнал, 4 инцидента, инструкция для повторения |
 
 ## Текущее состояние
 

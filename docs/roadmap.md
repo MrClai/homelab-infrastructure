@@ -21,6 +21,7 @@
 - Architecture decisions — 12 ADR опубликованы в docs/decisions.md (k3s, Proxmox, OpenBao, ArgoCD, Terraform, MinIO, GL-MT6000, политика прав Terraform и автозапуска VM, размещение MinIO вне кластера, internal CA для TLS, TLS и auth для Docker Registry, reclaim policy для критичных PV мониторинга).
 - Backup — реализован backup для OpenBao (Raft snapshot) и MinIO (self-archive), оба загружаются в MinIO bucket с offsite-копией на отдельной машине. Restore OpenBao проверен в отдельном Docker-инстансе. Свежий production-архив MinIO восстановлен 21.09.2026 в отдельный пустой MinIO через S3 API; SHA-256 объекта до и после совпал. Аварийная замена production-инстанса не прогонялась.
 - Restore runbook — оформлена пошаговая инструкция по восстановлению бекапов.
+- Windows on Proxmox (учебный эксперимент) — шаблон Windows Server 2025 (VirtIO, QEMU Guest Agent, Cloudbase-Init 1.1.8, Sysprep); пробный клон получил hostname, DHCP и пароль администратора через ConfigDrive2. Terraform для Windows-клонов и конвертация в Proxmox template сознательно не делались.
 
 ## Закрытые изменения после базовой версии
 
