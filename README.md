@@ -67,6 +67,7 @@ VM в Proxmox описаны через Terraform, базовая автомат
 
 | Файл | Что внутри |
 |---|---|
+| [docker-notes-lab/](docker-notes-lab/README.md) | Docker Compose: API заметок с PostgreSQL, постоянный том, проверка восстановления и диагностика сбоя |
 | [docs/labs/windows-proxmox-template.md](docs/labs/windows-proxmox-template.md) | Windows Server 2025 шаблон для Proxmox: Cloudbase-Init, Sysprep, ConfigDrive2; пробный клон получает hostname, DHCP и пароль из Proxmox. Журнал, 4 инцидента, инструкция для повторения |
 
 ## Текущее состояние
