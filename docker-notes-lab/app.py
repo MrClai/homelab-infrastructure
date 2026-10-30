@@ -47,5 +47,6 @@ def health():
         with get_connection() as connection:
             connection.execute("SELECT 1")
         return {"status": "ok"}, 200
-    except psycopg.Error:
+    except psycopg.Error as error:
+        app.logger.warning("Ошибка проверки БД: %s", type(error).__name__)
         return {"status": "database unavailable"}, 503
