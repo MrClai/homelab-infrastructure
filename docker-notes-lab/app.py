@@ -1,12 +1,12 @@
 import os
 import psycopg  
-from flask import Flask, request
+from flask import Flask, request # Импортируем необходимые библиотеки: os для работы с переменными окружения, psycopg для подключения к PostgreSQL и Flask для создания веб-приложения
 
 app = Flask(__name__)
 app.json.ensure_ascii = False  # Настройка для корректного отображения русских символов в JSON
 def get_connection():
     return psycopg.connect(
-        host=os.environ["DB_HOST"],
+        host=os.environ["DB_HOST"], # Используем переменные окружения для подключения к базе данных
         port=os.environ["DB_PORT"],
         dbname=os.environ["DB_NAME"],
         user=os.environ["DB_USER"],
@@ -31,7 +31,7 @@ def create_note():
     text = data["text"]
 
     if not text.strip():
-        return {"error": "Текст заметки не может быть пустым"}, 400
+        return {"error": "Текст заметки не может быть пустым"}, 400 # Возвращаем 400, если текст заметки пустой
 
     with get_connection() as connection:
         row = connection.execute(
@@ -39,14 +39,14 @@ def create_note():
             (text,),
         ).fetchone()
 
-    return {"id": row[0], "text": row[1]}, 201
+    return {"id": row[0], "text": row[1]}, 201 # Возвращаем 201, если заметка успешно создана
 
 @app.get("/health")
 def health():
     try:
         with get_connection() as connection:
-            connection.execute("SELECT 1")
-        return {"status": "ok"}, 200
+            connection.execute("SELECT id, text FROM notes LIMIT 1")  # Проверяем чтение таблицы notes, выполняя простой запрос
+        return {"status": "ok"}, 200 # Возвращаем 200, если база данных доступна
     except psycopg.Error as error:
         app.logger.warning("Ошибка проверки БД: %s", type(error).__name__)
-        return {"status": "database unavailable"}, 503
+        return {"status": "not ready"}, 503 # Возвращаем 503, если база данных недоступна
