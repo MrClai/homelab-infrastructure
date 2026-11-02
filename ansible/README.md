@@ -24,6 +24,8 @@ homelab-ansible/
 │       └── hosts.ini
 └── playbooks
     ├── create-ansible-user.yml
+    ├── distribute-ca.yml
+    ├── grant-ansible-sudo.yml
     ├── healthcheck.yml
     └── update-linux.yml
 ```

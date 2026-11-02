@@ -27,8 +27,13 @@ def get_notes():
 
 @app.post("/notes")
 def create_note():
-    data = request.get_json()
-    text = data["text"]
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return {"error": "Ожидается JSON-объект с полем text"}, 400
+
+    text = data.get("text")
+    if not isinstance(text, str):
+        return {"error": "Поле text должно быть строкой"}, 400
 
     if not text.strip():
         return {"error": "Текст заметки не может быть пустым"}, 400 # Возвращаем 400, если текст заметки пустой
